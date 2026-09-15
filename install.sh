@@ -356,6 +356,12 @@ resolve_snapshot_version() {
     return 1
 }
 
+# This fork publishes automatic builds as prerelease snapshots. GitHub's
+# releases/latest endpoint ignores prereleases, so default to snapshot.
+if [ -z "$install_version" ]; then
+    install_version="snapshot"
+fi
+
 version_to_install="latest"
 if [ -n "$install_version" ]; then
     if [ "$install_version" = "snapshot" ]; then
