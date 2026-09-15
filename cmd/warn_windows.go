@@ -20,12 +20,7 @@ import (
 	"golang.org/x/sys/windows"
 )
 
-func startSecurityWarning(ctx context.Context) func() {
-	if flags.DisableWebSsh {
-		return func() {}
-	}
-	warning := newSecurityWarning(flags.Endpoint, warningCurrentUser())
-	go warnWindowsSessions(ctx, warning)
+func startSecurityWarning(context.Context) func() {
 	return func() {}
 }
 
