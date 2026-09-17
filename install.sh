@@ -356,10 +356,10 @@ resolve_snapshot_version() {
     return 1
 }
 
-# This fork publishes automatic builds as prerelease snapshots. GitHub's
-# releases/latest endpoint ignores prereleases, so default to snapshot.
+# This fork publishes stable semantic-version releases.
+# When no version is specified, install the latest stable release.
 if [ -z "$install_version" ]; then
-    install_version="snapshot"
+    install_version="latest"
 fi
 
 version_to_install="latest"

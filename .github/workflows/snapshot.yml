@@ -1,10 +1,7 @@
-name: Publish Snapshot
+name: Publish v0.1.0 Release
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
 
 permissions:
   contents: write
@@ -50,12 +47,12 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
-      - name: Generate snapshot version
+      - name: Set release version
         id: version
         run: |
-          VERSION="Snapshot-$(date -u +%y%m%d%H%M)"
+          VERSION="v0.1.0"
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-          echo "Snapshot version: ${VERSION}"
+          echo "Release version: ${VERSION}"
 
   build-and-attach-binaries:
     needs: prepare
@@ -132,13 +129,13 @@ jobs:
           path: artifacts
           merge-multiple: true
 
-      - name: Create snapshot prerelease and upload binaries
+      - name: Create stable release and upload binaries
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ needs.prepare.outputs.version }}
         run: |
           set -euxo pipefail
-          echo "Snapshot version: ${VERSION}"
+          echo "Release version: ${VERSION}"
           ls -alR artifacts
 
           if gh release view "${VERSION}" --repo "${{ github.repository }}" >/dev/null 2>&1; then
@@ -150,23 +147,14 @@ jobs:
             --repo "${{ github.repository }}" \
             --target "${{ github.sha }}" \
             --title "${VERSION}" \
-            --notes "Automated snapshot build (${VERSION}) from commit ${{ github.sha }}." \
-            --prerelease \
+            --notes "Stable release ${VERSION} built from commit ${{ github.sha }}." \
+            --latest \
             artifacts/komari-agent-*
 
-          gh release list \
-            --repo "${{ github.repository }}" \
-            --limit 1000 \
-            --json tagName,isPrerelease \
-            --jq '.[] | select(.isPrerelease and (.tagName | startswith("Snapshot-"))) | .tagName' |
-          while IFS= read -r tag; do
-            if [ -z "${tag}" ] || [ "${tag}" = "${VERSION}" ]; then
-              continue
-            fi
-
-            echo "Deleting old snapshot release ${tag}..."
-            gh release delete "${tag}" --repo "${{ github.repository }}" --cleanup-tag --yes
-          done
+          if gh release view "Snapshot-2609150917" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            echo "Deleting obsolete snapshot release Snapshot-2609150917..."
+            gh release delete "Snapshot-2609150917" --repo "${{ github.repository }}" --cleanup-tag --yes
+          fi
         shell: bash
 
   build-and-push-docker:
