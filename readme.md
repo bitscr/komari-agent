@@ -1,5 +1,18 @@
 # komari-agent
 
+> ## 📌 关于本仓库
+>
+> 这是 **bitscr 维护的修改版（fork）**，不是上游原项目。本仓库的 `main` 分支以**本仓库的修改为准**：二进制、Docker 镜像、Release 与安装脚本都只从 `github.com/bitscr/komari-agent` 产出。
+>
+> - **安装一律使用本仓库**：
+>   ```bash
+>   curl -fsSL https://raw.githubusercontent.com/bitscr/komari-agent/main/install.sh | bash
+>   ```
+>   或从 [本仓库 Releases](https://github.com/bitscr/komari-agent/releases) 下载二进制。
+> - **自动更新已固定到本仓库**：运行时更新检查的 `Repo` 为 `bitscr/komari-agent`，不会回退到原项目的发布。
+> - 本仓库只配置了 `origin` 一个远端（指向 `bitscr/komari-agent`）。
+> - 上游原项目的代码与文档若与本仓库冲突，**以本仓库为准**。
+
 ## 配置方式
 
 agent 参数可以通过命令行参数、环境变量或 JSON 配置文件传入。
