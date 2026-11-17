@@ -99,6 +99,12 @@ jobs:
           fi
           go build -trimpath -ldflags="-X github.com/komari-monitor/komari-agent/update.CurrentVersion=${VERSION}" -o $BINARY_NAME
 
+      - name: Package Windows bundle
+        if: matrix.goos == 'windows'
+        run: |
+          zip -j "komari-agent-windows-${{ matrix.goarch }}.zip" \
+            "komari-agent-windows-${{ matrix.goarch }}.exe" install.ps1
+
       - name: Upload binary as artifact
         uses: actions/upload-artifact@v4
         with:

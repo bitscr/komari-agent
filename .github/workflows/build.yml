@@ -31,7 +31,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: "1.23"
+          go-version-file: go.mod
 
       - name: Build binary
         env:
@@ -51,3 +51,44 @@ jobs:
         with:
           name: komari-agent-${{ matrix.goos }}-${{ matrix.goarch }}
           path: komari-agent-${{ matrix.goos }}-${{ matrix.goarch }}*
+
+  windows:
+    # Native Windows job: cross-compiling on ubuntu already produces the .exe,
+    # but only a real Windows runner proves the binary starts and that the
+    # windows-only code paths (service, terminal, GPU/WMI probes) compile.
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Build windows/amd64
+        shell: pwsh
+        env:
+          GOOS: windows
+          GOARCH: amd64
+          CGO_ENABLED: 0
+          VERSION: ${{ github.sha }}
+        run: |
+          go build -trimpath -ldflags="-X github.com/komari-monitor/komari-agent/update.CurrentVersion=${env:VERSION}" -o komari-agent-windows-amd64.exe .
+
+      - name: Smoke test the binary
+        shell: pwsh
+        run: |
+          $output = & .\komari-agent-windows-amd64.exe --help 2>&1
+          if ($LASTEXITCODE -ne 0) {
+            $output
+            throw "komari-agent-windows-amd64.exe --help exited with $LASTEXITCODE"
+          }
+          $output | Select-Object -First 20
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: komari-agent-windows-amd64-native
+          path: komari-agent-windows-amd64.exe

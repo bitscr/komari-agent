@@ -14,7 +14,7 @@ The important design split is:
 
 | Workflow | Trigger | Main output | Prerelease handling |
 | --- | --- | --- | --- |
-| `build.yml` | Push to `main` | CI build artifacts for the pushed commit | Not a release workflow |
+| `build.yml` | Push to `main` | CI build artifacts for the pushed commit, plus a native Windows build check | Not a release workflow |
 | `snapshot.yml` | Push to `main`, manual dispatch | One snapshot prerelease plus `ghcr.io/...:snapshot` | Creates prereleases only |
 | `release.yml` | Published GitHub release | Release binary assets | Skips prereleases |
 | `release-docker.yml` | Published GitHub release, manual dispatch | Stable Docker image tags | Skips prerelease release events |
@@ -55,7 +55,11 @@ Trigger:
 
 Jobs:
 
-- Builds a matrix of Windows, Linux, macOS, and FreeBSD targets.
+- Builds a matrix of Windows, Linux, macOS, and FreeBSD targets (cross-compiled on
+  `ubuntu-latest`).
+- `windows` job: a native `windows-latest` build of `windows/amd64` that also runs
+  the produced `.exe` with `--help`, so Windows-only code paths are validated
+  instead of only cross-compiled.
 - Excludes unsupported combinations:
   - `windows/arm`
   - `darwin/386`
@@ -174,6 +178,9 @@ Jobs:
 - Builds Windows, Linux, macOS, and FreeBSD binaries.
 - Embeds the release tag as `update.CurrentVersion`.
 - Uploads the matching binary to the GitHub release.
+- For Windows targets it also uploads `komari-agent-windows-<arch>.zip`, a bundle
+  containing the `.exe` and `install.ps1`, so a clean host can be set up with a
+  single download.
 
 ## `release-docker.yml`
 

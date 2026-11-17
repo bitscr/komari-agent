@@ -52,6 +52,23 @@ jobs:
           fi
             go build -trimpath -ldflags="-X github.com/komari-monitor/komari-agent/update.CurrentVersion=${VERSION}" -o $BINARY_NAME
 
+      - name: Package Windows bundle
+        if: matrix.goos == 'windows'
+        run: |
+          # Ship the installer next to the binary so a fresh Windows host needs
+          # exactly one download: unzip, then run install.ps1 as Administrator.
+          zip -j "komari-agent-windows-${{ matrix.goarch }}.zip" \
+            "komari-agent-windows-${{ matrix.goarch }}.exe" install.ps1
+
+      - name: Upload Windows bundle to release
+        if: matrix.goos == 'windows'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload ${{ github.event.release.tag_name }} \
+            "komari-agent-windows-${{ matrix.goarch }}.zip" \
+            --repo ${{ github.repository }} --clobber
+
       - name: Upload binary to release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
